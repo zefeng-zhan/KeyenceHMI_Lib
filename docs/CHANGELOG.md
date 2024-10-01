@@ -1,5 +1,6 @@
 # ChangeLog for KeyenceHMI Library
-
+## [0.0.2] - 2024-10-01
+some changes in library.json
 ## [0.0.1] - 2024-10-01
 some changes in readme, changelog
 some changes in example file "Libtest0927"
