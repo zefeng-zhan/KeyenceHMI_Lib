@@ -1,6 +1,8 @@
 # ChangeLog for Lib-Demo
 
 ## [0.0.0] - 2024-10-01
+### 2nd commit (0.0.0-a)
+some changes
 ### 1st commit
 change sematic version number, add readme.md, change library.json
 
