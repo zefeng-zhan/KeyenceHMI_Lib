@@ -1,6 +1,6 @@
 {
     "name": "KeyenceHMI_Lib",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A \"KeyenceHMI_Lib\" program is a computer program that provides some function to communicate with Keyence Touch Panel (HRI)",
     "keywords": "planet, happiness, people",
     "repository":
