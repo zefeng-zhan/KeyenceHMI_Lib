@@ -1,16 +1,15 @@
 #include <Arduino.h>
-//#include "HMI_V1_0.h"
-//#include "t0710.h"
-//#include "t07101.h"
 #include "KeyenceHMI.h"
+//V0.0.1: 清除一些多餘註解、精簡化
+//V0.0.0: 初版，用於要流程控制的設備，並且預設有一般OP模式和工程模式(供RD除錯用、HMI部分功能限於此執行)
 
-
+//Arduino mega 2560
 #define out_1 bitWrite(PORTC, 0, 1)//D37
 #define in_1 (!bitRead(PINB, 0))||(hmi.HMI_Read_Bit(0/8,0%8)&&hmi.virtual_input_func)  //D53//註冊idx0的按鈕
 #define in_2 (!bitRead(PINB, 1))||(hmi.HMI_Read_Bit(1/8,1%8)&&hmi.virtual_input_func)   //D52//註冊idx1的按鈕
-//#include "KeyenceHMI.h"
-// put function declarations here:
-KeyenceHMI hmi(Serial2);//use serial 1
+
+
+KeyenceHMI hmi(Serial2);//use serial 2
 uint8_t auint8 = 0;
 
 //測試用變數
@@ -23,14 +22,13 @@ String abc = "";
 //flag
 bool eng_mode = false;
 bool eng_run_mode = false;
-
+//standard flow control functions 
 void initial();
 void OP_flow();
 void eng_flow();
 
 void Write_custom(int8_t* data, uint8_t length);
 void Read_custom(int8_t* data, uint8_t length);
-void print_IOstate();
 
 void setup() {
 
@@ -38,9 +36,7 @@ void setup() {
   initial();
   Serial.println("hello world");
   
-//print_IOstate();
-
-  hmi.HMI_Init(115200,1);//1號設備代表測試專案，專門測試lib更改
+  hmi.HMI_Init(115200,1);//第二個parameter是專案編號，可先隨意設置，用於給HMI端辨識專案用
   hmi.setDataHandler_Read(Read_custom);
   hmi.setDataHandler_Write(Write_custom);
   //放幾個虛擬IO來檢查功能
@@ -49,7 +45,7 @@ void setup() {
   hmi.set_virtual_IO(2,65);
   hmi.set_virtual_IO(3,67);
   hmi.set_virtual_IO(4,69);
-  hmi.set_virtual_IO(5,54);//大急停
+  hmi.set_virtual_IO(5,54);
 }
 
 void loop() {
@@ -64,6 +60,7 @@ void loop() {
     }
 
   //}
+  //一種處理serial 0的最簡方法
   while(Serial.available()){
     char temp = Serial.read();
     abc+=temp;
@@ -73,39 +70,9 @@ void loop() {
 
   
 
-  hmi.HMI_Cyclic();
+  hmi.HMI_Cyclic();//必要，放置於主loop
 }
 
-// put function definitions here:
-
-void print_IOstate(){
-  for (uint8_t pin = 0; pin < 70; ++pin) {
-    uint8_t port = digitalPinToPort(pin);
-    if (port == NOT_A_PIN) continue;
-
-    uint8_t bit = digitalPinToBitMask(pin);
-    volatile uint8_t* ddr = portModeRegister(port);
-    volatile uint8_t* out = portOutputRegister(port);
-
-    bool isOutput = (*ddr & bit);
-    bool isPulledUp = (*out & bit);
-
-    
-    volatile uint8_t *in = portInputRegister(port);
-      
-    //bool pinState = isOutput ? (*out & bit) : (*in & bit);
-    bool pinState = isOutput ? (*out & bit) : (isPulledUp? !(*in & bit):0);//input看pull up，沒有pullup代表有input
-
-    //bool isPulledUp = (*out & bit);
-
-    Serial.print("pin D number: ");
-    Serial.print(pin);
-    Serial.print("    in(0) or out(1): ");
-    Serial.print(isOutput);
-    Serial.print("    value is : ");
-    Serial.println(pinState);
-  }
-}
 void initial(){
   //IO初始化
   PORTA = 0;          //關閉全部IO
@@ -222,7 +189,6 @@ void Write_custom(int8_t* data, uint8_t length){//可用byte數 = length
       hmi.HMI_Send_Bit(1,8,7);//010'47' set 1
   }
 }
-// bool test0723_1 = false;
 void Read_custom(int8_t* data, uint8_t length){//讀取的資料的byte數 = length
   int * r1 = (int*) &data[0];
   int * r2 = (int*) &data[2];
@@ -231,22 +197,20 @@ void Read_custom(int8_t* data, uint8_t length){//讀取的資料的byte數 = len
   out2 = *r2;
   out3 = *r3;
   //處理hmi 開關訊號
-  if(hmi.LDP(10)){//讀取到第1個按鈕有上升訊號
+  if(hmi.LDP(10)){//讀取到第10個按鈕有上升訊號
     F1 = true;
     hmi.HMIprint(F("press 10"));
   }
-  if(hmi.LDF(10)){//讀取到第1個按鈕有下降訊號
+  if(hmi.LDF(10)){//讀取到第10個按鈕有下降訊號
     F1 = false;
     hmi.HMIprint(F("release 10"));
   }
   if(hmi.LDP(61)){//進出入工程模式s1的cmd
     if(eng_mode){
       if(!eng_run_mode){
-        //R_String_cmd0 = "GoToStage1";
         hmi.HMIprint(F("press GoTo_eng_run_mode"));
       }
       else{
-        //R_String_cmd0 = "GoToStage0";
         hmi.HMIprint(F("press GoTo_eng_origin"));
       }
     }
@@ -258,24 +222,11 @@ void Read_custom(int8_t* data, uint8_t length){//讀取的資料的byte數 = len
 
   if(hmi.LDP(62)){//進出工程模式的cmd
     if(!eng_mode){
-      //R_String_cmd0 = "GEM";
       hmi.HMIprint("[press GEM]");
     }
     else{
-      //R_String_cmd0 = "GOM";
       hmi.HMIprint("[press GOM]");
       hmi.virtual_input_func = false;
     }
   }
-  // if(hmi.LDF(32)){//觸發發送訊息
-  //   test0723_1 = !test0723_1;
-  //   if(test0723_1){
-  //     hmi.talk2HMI("hello world!123456sdf!/*-");
-  //     Serial.println("hello world!123456sdf!/*-");
-  //   }
-  //   else{
-  //     hmi.talk2HMI("abc:123,+-*");
-  //     Serial.println("abc:123,+-*");
-  //   }
-  // }
 }

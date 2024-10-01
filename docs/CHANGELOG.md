@@ -1,5 +1,8 @@
-# ChangeLog for Lib-Demo
+# ChangeLog for KeyenceHMI Library
 
+## [0.0.1] - 2024-10-01
+some changes in readme, changelog
+some changes in example file "Libtest0927"
 ## [0.0.0] - 2024-10-01
 ### 2nd commit (0.0.0-a)
 some changes
