@@ -1,4 +1,6 @@
 # ChangeLog for KeyenceHMI Library
+## [0.0.3] - 2024-10-04
+changes in library.json
 ## [0.0.2] - 2024-10-01
 some changes in library.json
 ## [0.0.1] - 2024-10-01
